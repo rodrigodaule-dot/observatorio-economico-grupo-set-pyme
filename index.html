@@ -82,8 +82,8 @@ footer{color:var(--mut);font-size:12px;text-align:center;padding:20px}
 
 <section id="res" class="on">
  <h2>La foto de hoy</h2>
- <p class="lead">Seis indicadores para entender el momento y siete señales para monitorear durante 2027. Verde = favorable para la pyme, amarillo = atención, rojo = alerta.</p>
- <div class="grid g3" id="kpis"></div>
+ <p class="lead">Ocho indicadores para entender el momento y siete señales para monitorear durante 2027. Verde = favorable para la pyme, amarillo = atención, rojo = alerta.</p>
+ <div class="grid g4" id="kpis"></div>
  <div class="grid g2" style="margin-top:16px">
   <div class="card"><h3>Tablero de alertas 2027</h3><div class="note">Umbrales definidos por SetConsulting <span class="tag t-hip">Hipótesis propia</span></div><table id="alertas" style="margin-top:8px"></table>
    <div class="read"><b>Regla práctica:</b> si tres o más señales están en rojo, activá el plan del escenario adverso (cobrar más rápido, stock como cobertura, frenar inversiones no críticas).</div></div>
@@ -219,13 +219,16 @@ const done={};function render(s){if(s==='mac')renderMac();if(s==='com')renderCom
 function renderRes(){
  const kI=last(S.ipc),kE=last(S.emae_d),kT=last(S.tc),kS=last(S.sal_priv),kX=last(S.expo),kR=last(S.riesgo);
  const emaeMax=Math.max(...Object.values(S.emae_d));const salReal=((1+yy(S.sal_priv,kS)/100)/(1+yy(S.ipc,kS)/100)-1)*100;
- const xYtd=(()=>{const y=kX.slice(0,4),m=+kX.slice(5);let a=0,b=0;for(let i=1;i<=m;i++){const mm=String(i).padStart(2,'0');a+=S.expo[`${y}-${mm}`]||0;b+=S.expo[`${y-1}-${mm}`]||0}return (a/b-1)*100})();
+ const ytd=(ser,k)=>{const y=k.slice(0,4),m=+k.slice(5);let a=0,b=0;for(let i=1;i<=m;i++){const mm=String(i).padStart(2,'0');a+=ser[`${y}-${mm}`]||0;b+=ser[`${y-1}-${mm}`]||0}return [(a/b-1)*100,a]};
+ const [xYtd,xAc]=ytd(S.expo,kX);const kM=last(S.impo);const [mYtd,mAc]=ytd(S.impo,kM);const sal=S.expo[kX]-S.impo[kX];
  const K=[
   ['Inflación mensual',fmt(mm(S.ipc,kI))+'%',`${lab(kI)} · ${fmt(yy(S.ipc,kI))}% interanual · núcleo ${fmt(mm(S.nucleo,kI))}%`,mm(S.ipc,kI)>2.5?'neg':mm(S.ipc,kI)>1.5?'amb':'pos'],
   ['Actividad (EMAE)',sgn((S.emae_d[kE]/emaeMax-1)*100),`vs. máximo de la serie · ${lab(kE)} · ${sgn(yy(S.emae_o,kE))} interanual`,'neg'],
   ['Dólar mayorista',sgn(yy(S.tc,kI)),`interanual ${lab(kI)} vs. ${fmt(yy(S.ipc,kI))}% de inflación · $${fmt(S.tc[kT],0)} (${lab(kT)})`,'amb'],
   ['Salario privado registrado',sgn(salReal),`real interanual · ${lab(kS)}`,salReal>=0?'pos':'neg'],
-  ['Exportaciones',sgn(xYtd),`acumulado del año · US$ ${fmt(S.expo[kX],0)} M en ${lab(kX)}`,'pos'],
+  ['Exportaciones',sgn(xYtd),`acumulado ene–${lab(kX).slice(0,3)} vs. 2025 · US$ ${fmt(S.expo[kX],0)} M en ${lab(kX)} (${sgn(yy(S.expo,kX))} a/a)`,'pos'],
+  ['Importaciones',sgn(mYtd),`acumulado ene–${lab(kM).slice(0,3)} vs. 2025 · US$ ${fmt(S.impo[kM],0)} M en ${lab(kM)} (${sgn(yy(S.impo,kM))} a/a)`,'amb'],
+  ['Saldo comercial','US$ '+fmt(sal,0)+' M',`${lab(kX)} · acumulado del año US$ ${fmt(xAc-mAc,0)} M`,sal>=0?'pos':'neg'],
   ['Riesgo país',fmt(S.riesgo[kR],0)+' pb',`promedio ${lab(kR)} · era ${fmt(S.riesgo['2026-07'],0)} en jul-26`,S.riesgo[kR]>1000?'neg':S.riesgo[kR]>600?'amb':'pos']];
  document.getElementById('kpis').innerHTML=K.map(([l,v,d,c])=>`<div class="card kpi"><div class="l">${l}</div><div class="v ${c}">${v}</div><div class="d">${d}</div></div>`).join('');
  const kB=last(S.ccl);const brecha=(S.ccl[kB]/S.tc[kB]-1)*100;
